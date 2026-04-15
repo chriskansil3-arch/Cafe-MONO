@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAFÉ MONOBOX</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body, html { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f5e6d3 0%, #e8d4c0 100%); color: #2c2c2c; min-height: 100vh; overflow-x: hidden; }
+
+/* HEADER */
+header { background: linear-gradient(135deg, #8b0000 0%, #dc143c 50%, #8b0000 100%); color: white; text-align: center; padding: 40px 10px; border-bottom: 5px solid #ffd700; position: relative; overflow: hidden; }
+header h1 { font-size: clamp(28px, 8vw, 48px); font-weight: bold; letter-spacing: 2px; text-shadow: 3px 3px 6px rgba(0,0,0,0.5); position: relative; z-index: 1; }
+
+/* KERANJANG ESTETIK (SEBELAH KANAN ATAS) */
+.cart-badge { 
+  position: absolute; 
+  top: 20px; 
+  right: 20px; 
+  background: rgba(255, 255, 255, 0.2); 
+  backdrop-filter: blur(8px); 
+  -webkit-backdrop-filter: blur(8px);
+  color: white; 
+  padding: 10px 18px; 
+  border-radius: 12px; 
+  font-weight: bold; 
+  z-index: 1002; 
+  cursor: pointer; 
+  display: none; 
+  border: 1px solid rgba(255, 255, 255, 0.4); 
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+.cart-badge:hover { background: rgba(255, 255, 255, 0.4); transform: translateY(-2px); }
+
+/* NAVBAR */
+.navbar { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; background: #f5e6d3; padding: 12px; border-bottom: 3px solid #8b0000; position: sticky; top: 0; z-index: 100; }
+.navbar button { background: linear-gradient(135deg, #8b0000, #dc143c); color: white; font-weight: bold; border-radius: 20px; padding: 8px 16px; border: none; cursor: pointer; transition: 0.3s; font-size: 13px; }
+
+/* TAB CONTENT */
+.tab-content { display: none; padding: 25px; margin: 15px; background: white; border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.1); border-left: 6px solid #8b0000; }
+
+/* MENU */
+.menu-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+.menu { background: #fffaf0; border: 1.5px solid #e8d4c0; border-radius: 12px; padding: 12px; text-align: center; transition: 0.3s; }
+.menu:hover { border-color: #8b0000; transform: translateY(-3px); }
+.menu-visual { width: 100%; height: 110px; border-radius: 8px; overflow: hidden; margin-bottom: 10px; background: #eee; }
+.menu-visual img { width: 100%; height: 100%; object-fit: cover; }
+.menu button { background: #8b0000; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
+
+/* SAKURA */
+.sakura { position: fixed; top: -10%; pointer-events: none; z-index: 999; animation: fall linear forwards; }
+@keyframes fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.8; }
+  100% { transform: translate(var(--sway), 100vh) rotate(360deg); opacity: 0; }
+}
+
+/* BUTTONS */
+.btn-bayar { background: #228b22; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.btn-batal { background: #666; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+/* POPUP */
+.popup { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 2000; }
+.box { background: white; padding: 30px; border-radius: 15px; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="cart-badge" id="cartBadge" onclick="showTab('pesanan')">
+    🛒 <span id="cartCount">0</span>
+  </div>
+  <h1>CAFÉ MONOBOX</h1>
+  <div id="fallingSakura"></div>
+</header>
+
+<div class="navbar" id="navbar">
+  <button onclick="showTab('home')">Home</button>
+  <button onclick="showTab('menu')">Menu</button>
+  <button onclick="showTab('pesanan')">Pesanan</button>
+  <button onclick="showTab('riwayat')">Riwayat</button>
+  <button onclick="logout()">Keluar</button>
+</div>
+
+<div id="loginPage" style="display: flex; height: 70vh; justify-content: center; align-items: center;">
+  <div style="background: white; padding: 30px; border-radius: 20px; border: 3px solid #8b0000; text-align: center; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    <h2 style="color: #8b0000;">Masuk ke Café</h2>
+    <input id="inputNama" placeholder="Ketik nama Anda..." style="width: 100%; padding: 12px; margin: 20px 0; border-radius: 8px; border: 2px solid #eee; outline:none;">
+    <button onclick="loginUser()" class="btn-bayar" style="width:100%">Mulai Pesan</button>
+  </div>
+</div>
+
+<div id="home" class="tab-content">
+  <h2 style="text-align: center; color: #8b0000;">Selamat Datang</h2>
+  <p style="text-align: center; margin-top: 10px;">Nikmati suasana Jepang autentik dengan pilihan menu terbaik kami.</p>
+</div>
+
+<div id="menu" class="tab-content">
+  <h2 style="text-align: center; color: #8b0000; margin-bottom: 20px;">Menu Pilihan</h2>
+  <div class="menu-container" id="menuContainer"></div>
+</div>
+
+<div id="pesanan" class="tab-content">
+  <h2 style="text-align: center; color: #8b0000;">Keranjang Belanja</h2>
+  <ul id="list" style="list-style: none; margin: 20px 0;"></ul>
+  <div style="text-align: center; border-top: 1px solid #eee; padding-top: 15px;">
+    <h3>Total: Rp <span id="total">0</span></h3>
+    <div style="margin-top: 15px; display: flex; gap: 10px; justify-content: center;">
+      <button onclick="resetPesanan()" class="btn-batal">Kosongkan</button>
+      <button onclick="bayarOnline()" class="btn-bayar">Bayar</button>
+    </div>
+  </div>
+</div>
+
+<div id="riwayat" class="tab-content">
+  <h2 style="text-align: center; color: #8b0000;">Riwayat Pesanan</h2>
+  <div id="historyList"></div>
+  <button onclick="resetRiwayat()" class="btn-batal" style="width: 100%; margin-top: 20px; background: #8b0000;">Hapus Riwayat</button>
+</div>
+
+<div id="popupBayar" class="popup">
+  <div class="box">
+    <h3>Konfirmasi</h3>
+    <p style="margin: 15px 0;">Total Bayar: <b>Rp <span id="totalBayar"></span></b></p>
+    <button onclick="prosesBayar()" class="btn-bayar">Selesaikan</button>
+    <button onclick="tutupPopup()" class="btn-batal">Batal</button>
+  </div>
+</div>
+
+<script>
+// SEMUA GAMBAR MENGGUNAKAN LINK ONLINE AGAR LANGSUNG MUNCUL
+let menuItems = [
+  { nama: 'Cappuccino', harga: 20000, img: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=500&q=80' },
+  { nama: 'Es Teh', harga: 10000, img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80' },
+  { nama: 'Nasi Goreng', harga: 35000, img: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=500&q=80' },
+  { nama: 'Caramel Latte', harga: 30000, img: 'https://images.unsplash.com/photo-1599398054066-846f28917f38?auto=format&fit=crop&w=500&q=80' }
+];
+
+let pesanan = {};
+let history = JSON.parse(localStorage.getItem("history")||"[]");
+
+function initApp(){
+  let user = localStorage.getItem("user");
+  if(user){
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("navbar").style.display="flex";
+    document.getElementById("cartBadge").style.display="block";
+    showTab('home');
+    document.querySelector("#home h2").innerText = `Halo, ${user}!`;
+  }
+  renderMenu();
+}
+
+function loginUser(){
+  let nama = document.getElementById("inputNama").value.trim();
+  if(!nama) return alert("Silakan masukkan nama Anda!");
+  localStorage.setItem("user", nama);
+  location.reload();
+}
+
+function logout(){ localStorage.removeItem("user"); location.reload(); }
+
+function renderMenu(){
+  let mc = document.getElementById("menuContainer");
+  mc.innerHTML = "";
+  menuItems.forEach(m => {
+    let div = document.createElement("div");
+    div.className = "menu";
+    div.innerHTML = `<div class="menu-visual"><img src="${m.img}" alt="${m.nama}"></div>
+      <p><b>${m.nama}</b></p>
+      <p style="color: #8b0000; font-size: 14px; margin: 4px 0;">Rp${m.harga.toLocaleString()}</p>
+      <button onclick="tambah('${m.nama}',${m.harga})">Tambah</button>`;
+    mc.appendChild(div);
+  });
+}
+
+function showTab(tab){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display="none");
+  document.getElementById(tab).style.display="block";
+  if(tab==="riwayat") tampilRiwayat();
+}
+
+function tambah(n, h){
+  pesanan[n] = pesanan[n] || {harga: h, qty: 0};
+  pesanan[n].qty++;
+  updateUI();
+}
+
+function kurang(n){
+  if(pesanan[n]){
+    pesanan[n].qty--;
+    if(pesanan[n].qty <= 0) delete pesanan[n];
+  }
+  updateUI();
+}
+
+function updateUI(){
+  let count = 0;
+  for(let i in pesanan) count += pesanan[i].qty;
+  document.getElementById("cartCount").innerText = count;
+  renderPesanan();
+}
+
+function renderPesanan(){
+  let list = document.getElementById("list");
+  list.innerHTML="";
+  let total = 0;
+  for(let i in pesanan){
+    total += pesanan[i].harga * pesanan[i].qty;
+    let li = document.createElement("li");
+    li.style = "display: flex; justify-content: space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid #f0f0f0;";
+    li.innerHTML = `<span>${i} (x${pesanan[i].qty})</span>
+      <div><button onclick="kurang('${i}')" style="width:28px; background:#eee; border:none; border-radius:4px; padding:4px;">-</button> 
+      <button onclick="tambah('${i}',${pesanan[i].harga})" style="width:28px; background:#eee; border:none; border-radius:4px; padding:4px; margin-left:4px;">+</button></div>`;
+    list.appendChild(li);
+  }
+  document.getElementById("total").innerText = total.toLocaleString();
+}
+
+function resetPesanan(){ pesanan = {}; updateUI(); }
+
+function resetRiwayat(){
+  if(confirm("Apakah Anda yakin ingin menghapus semua riwayat?")){
+    history = [];
+    localStorage.setItem("history", JSON.stringify(history));
+    tampilRiwayat();
+  }
+}
+
+function bayarOnline(){
+  let t = document.getElementById("total").innerText;
+  if(t === "0") return alert("Pilih menu terlebih dahulu!");
+  document.getElementById("totalBayar").innerText = t;
+  document.getElementById("popupBayar").style.display = "flex";
+}
+
+function tutupPopup(){ document.getElementById("popupBayar").style.display = "none"; }
+
+function prosesBayar(){
+  let total = 0, detail = "";
+  for(let i in pesanan){
+    total += pesanan[i].harga * pesanan[i].qty;
+    detail += `• ${i} (x${pesanan[i].qty})\n`;
+  }
+  history.push({ waktu: new Date().toLocaleString('id-ID'), detail: detail, total: total });
+  localStorage.setItem("history", JSON.stringify(history));
+  pesanan = {}; updateUI(); tutupPopup();
+  alert("Pesanan berhasil dibuat!");
+}
+
+function tampilRiwayat(){
+  let div = document.getElementById("historyList");
+  div.innerHTML = history.length ? "" : "<p style='text-align: center; color: #999;'>Belum ada riwayat pesanan.</p>";
+  history.slice().reverse().forEach(h => {
+    let item = document.createElement("div");
+    item.style = "background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #8b0000; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
+    item.innerHTML = `<small style="color:#666;">${h.waktu}</small><pre style="font-family: inherit; font-size: 14px; margin: 8px 0; color:#333;">${h.detail}</pre><b>Total: Rp${h.total.toLocaleString()}</b>`;
+    div.appendChild(item);
+  });
+}
+
+function buatSakura(){
+  const s = document.createElement('div');
+  s.className = 'sakura';
+  s.innerHTML = '🌸';
+  s.style.left = Math.random() * 100 + 'vw';
+  const size = (Math.random() * 12 + 10) + 'px';
+  s.style.fontSize = size;
+  const duration = Math.random() * 3 + 5;
+  s.style.animationDuration = duration + 's';
+  s.style.setProperty('--sway', (Math.random() * 120 - 60) + 'px');
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), duration * 1000);
+}
+
+setInterval(buatSakura, 700);
+initApp();
+</script>
+</body>
+</html>
